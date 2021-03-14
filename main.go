@@ -22,7 +22,7 @@ func main() {
     log.Fatal(err)
   }
 
-  parser := NewParser(string(content), 0, false)
+  parser := NewParser(string(content), 0, true)
   root := parser.Parse()
   fmt.Println("Parsing successful! Result:")
   root.PrettyPrint()

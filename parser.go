@@ -120,8 +120,7 @@ func isAlphanumericOrPunctuation(check byte) bool {
     unicode.IsNumber(rune(check)) ||
     unicode.IsPunct(rune(check)) ||
     check == ' ' ||
-    check == '\r' ||
-    check == '\n'
+    check == '\r'
 }
 
 func isAttributeSplit(check byte) bool {
@@ -169,17 +168,16 @@ func (p *Parser) node() *DOMNode {
     }
     children = append(children, n)
   }
-  
-
-  var closeTag = p.closeTag()
-  if closeTag == "" {
-    return nil
-  }
 
   n = &DOMNode{
     children: children,
     tag: openTag,
     attributes: attributes,
+  }
+
+  var closeTag = p.closeTag()
+  if closeTag == "" {
+    return n
   }
 
   return n
