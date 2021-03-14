@@ -31,7 +31,7 @@ func NewParser(input string, position int, verbose bool) *Parser {
 func (p *Parser) accept(check ...byte) bool {
   var next, err = p.reader.Peek(1)
   if err != nil {
-    return false
+    log.Fatal(err)
   }
   for _, checkByte := range check {
     if checkByte == next[0] {
@@ -51,7 +51,7 @@ func (p *Parser) accept(check ...byte) bool {
 func (p *Parser) assertString(check string) bool {
   var next, err = p.reader.Peek(len(check))
   if err != nil {
-    return false
+    log.Fatal(err)
   }
   return string(next) == check
 }
@@ -74,7 +74,7 @@ func (p *Parser) acceptString(check string) bool {
 func (p *Parser) acceptByteGivenTest(test func(val byte) bool) (byte, bool) {
   var next, err = p.reader.Peek(1)
   if err != nil {
-    return 0, false
+    log.Fatal(err)
   }
   valid := test(next[0])
   if valid {
