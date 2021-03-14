@@ -23,5 +23,6 @@ func main() {
   }
 
   parser := NewParser(string(content), 0)
-  parser.Parse()
+  root := parser.Parse()
+  root.PrettyPrint()
 }
