@@ -5,7 +5,6 @@ import (
   "fmt"
   "log"
   "strings"
-  "unicode"
 )
 
 type Parser struct {
@@ -116,11 +115,7 @@ func (p *Parser) consumeWhitespace() {
 }
 
 func isAlphanumericOrPunctuation(check byte) bool {
-  return unicode.IsLetter(rune(check)) ||
-    unicode.IsNumber(rune(check)) ||
-    unicode.IsPunct(rune(check)) ||
-    check == ' ' ||
-    check == '\r'
+  return check != '>' && check != '<' || check == ' ' || check == '\r'
 }
 
 func isAttributeSplit(check byte) bool {
@@ -129,6 +124,27 @@ func isAttributeSplit(check byte) bool {
 
 func isQuote(check byte) bool {
   return check != '"' && check != '\''
+}
+
+func isSelfClosing(tag string) bool {
+  var dict map[string]bool = map[string]bool{
+    "area": true,
+    "base": true,
+    "br": true,
+    "col": true,
+    "embed": true,
+    "hr": true,
+    "img": true,
+    "input": true,
+    "keygen": true,
+    "link": true,
+    "meta": true,
+    "param": true,
+    "source": true,
+    "track": true,
+    "wbr": true,
+  }
+  return dict[tag]
 }
 
 /* Actual parsing starts here */
@@ -150,34 +166,41 @@ func (p *Parser) document() *DOMNode {
 func (p *Parser) node() *DOMNode {
   p.consumeWhitespace()
 
-  openTag, attributes := p.openTag()
+  openTag, attributes, selfClosing := p.openTag()
   if openTag == "" {
     return nil
   }
 
   var children []*DOMNode
-
   var n *DOMNode
-  for {
-    n = p.node()
-    if n == nil {
-      n = p.text()
+
+  // Self closing tags can't have children :(
+  if !selfClosing {
+    for {
+      n = p.node()
       if n == nil {
-        break
+        n = p.text()
+        if n == nil {
+          break
+        }
       }
+      children = append(children, n)
     }
-    children = append(children, n)
   }
 
   n = &DOMNode{
     children: children,
     tag: openTag,
     attributes: attributes,
+    selfClosing: selfClosing,
   }
 
-  var closeTag = p.closeTag()
-  if closeTag == "" {
-    return n
+  // Only try and find a closing tag if not self closing.
+  if !selfClosing {
+    var closeTag = p.closeTag()
+    if closeTag == "" {
+      return n
+    }
   }
 
   return n
@@ -198,14 +221,14 @@ func (p *Parser) text() *DOMNode {
    return nil
 }
 
-func (p *Parser) openTag() (string, map[string]string) {
+func (p *Parser) openTag() (string, map[string]string, bool) {
   // if it's a close tag, bail out.
   if p.assertString("</") {
-    return "", nil
+    return "", nil, false
   }
 
   if !p.accept('<') {
-    return "", nil
+    return "", nil, false
   }
 
   var tagName = p.tagName()
@@ -214,26 +237,35 @@ func (p *Parser) openTag() (string, map[string]string) {
     fmt.Println("Open tag: ", tagName)
   }
 
+  p.consumeWhitespace()
+
   // Exit early if we've reached the end of the tag.
+  // Return true if it's a self closing tag.
   if p.accept('>') {
-    return tagName, nil
+    selfClosing := isSelfClosing(tagName)
+    return tagName, nil, selfClosing
+  } else if p.acceptString("/>") {
+    return tagName, nil, true
   }
 
   // Tag isn't over yet, cover any attributes we can find.
   var attributes = make(map[string]string)
   var attrName, attrValue = p.attribute()
   for attrName != "" {
-    attributes[attrName] = attrValue
     p.consumeWhitespace()
+    attributes[attrName] = attrValue
     // Quit the loop when we find the end of the tag.
     if p.accept('>') {
-      return tagName, attributes
+      selfClosing := isSelfClosing(tagName)
+      return tagName, attributes, selfClosing
+    } else if p.acceptString("/>") {
+      return tagName, attributes, true
     }
     attrName, attrValue = p.attribute()
   }
 
   // We never found the end of the tag :(
-  return "", nil
+  return "", nil, false
 }
 
 func (p *Parser) closeTag() string {
@@ -256,7 +288,7 @@ func (p *Parser) closeTag() string {
 
 func (p *Parser) tagName() string {
   var tagName = p.acceptBytesUntilTest(func(val byte) bool {
-    return !(val == '>' || val == ' ')
+    return !(val == '>' || val == ' ' || val == '/')
   })
 
   // Now we've determined the tag name, consume any remaining whitespace.

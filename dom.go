@@ -9,6 +9,7 @@ type DOMNode struct {
   tag string
   text string
   attributes map[string]string
+  selfClosing bool
   children []*DOMNode
 }
 
@@ -22,7 +23,7 @@ func traverse (node *DOMNode, d int) {
   for _, child := range node.children {
     traverse(child, d + 1)
   }
-  if node.text == "" {
+  if node.text == "" && !node.selfClosing {
     fmt.Println(indent, node.printCloseTag())
   }
 }
@@ -36,6 +37,9 @@ func (d *DOMNode) printOpenTag() string {
   }
   tag := d.tag
   attributes := d.printAttributes()
+  if d.selfClosing {
+    return fmt.Sprintf("<%s%s />", tag, attributes)
+  }
   return fmt.Sprintf("<%s%s>", tag, attributes)
 }
 
