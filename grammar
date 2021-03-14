@@ -1,0 +1,11 @@
+document = "<!DOCTYPE html>" node
+
+node = open_tag { (node|text) } close_tag
+
+open_tag = "<" {attribute} tagname ">"
+
+close_tag = "</" tagname ">"
+
+attribute = attributename "=" attributevalue
+
+tagname = [a-zA-Z]

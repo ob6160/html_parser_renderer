@@ -1,2 +1,3 @@
-# html_parser_renderer
-HTML Parser Renderer written in golang
+# browserengine
+
+A toy HTML parser / renderer.
