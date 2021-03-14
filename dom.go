@@ -12,33 +12,8 @@ type DOMNode struct {
   children []*DOMNode
 }
 
-func (d *DOMNode) PrettyPrint() {
+func (d *DOMNode) PrintTree() {
   traverse(d, 0)
-}
-
-func (d *DOMNode) printOpenTag() string {
-  if d.text != "" {
-    return d.text
-  }
-  tag := d.tag
-  attributes := d.printAttributes()
-  return fmt.Sprintf("<%s%s>", tag, attributes)
-}
-
-func (d *DOMNode) printCloseTag() string {
-  if d.text != "" {
-    return ""
-  }
-  tag := d.tag
-  return fmt.Sprintf("</%s>", tag)
-}
-
-func (d *DOMNode) printAttributes() string {
-  var attrs strings.Builder
-  for key, val := range d.attributes {
-    attrs.WriteString(fmt.Sprintf(" %s='%s'", key, val))
-  }
-  return attrs.String()
 }
 
 func traverse (node *DOMNode, d int) {
@@ -52,3 +27,36 @@ func traverse (node *DOMNode, d int) {
   }
 }
 
+/**
+ * Pretty prints the node as an html open tag.
+ */
+func (d *DOMNode) printOpenTag() string {
+  if d.text != "" {
+    return d.text
+  }
+  tag := d.tag
+  attributes := d.printAttributes()
+  return fmt.Sprintf("<%s%s>", tag, attributes)
+}
+
+/**
+ * Pretty prints the node as an html close tag.
+ */
+func (d *DOMNode) printCloseTag() string {
+  if d.text != "" {
+    return ""
+  }
+  tag := d.tag
+  return fmt.Sprintf("</%s>", tag)
+}
+
+/**
+ * Pretty prints the nodes' attributes.
+ */
+func (d *DOMNode) printAttributes() string {
+  var attrs strings.Builder
+  for key, val := range d.attributes {
+    attrs.WriteString(fmt.Sprintf(" %s='%s'", key, val))
+  }
+  return attrs.String()
+}
