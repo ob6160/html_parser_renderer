@@ -127,7 +127,7 @@ func isQuote(check byte) bool {
 }
 
 func isSelfClosing(tag string) bool {
-  var dict map[string]bool = map[string]bool{
+  var dict = map[string]bool{
     "area": true,
     "base": true,
     "br": true,
