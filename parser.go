@@ -11,15 +11,17 @@ import (
 type Parser struct {
   input string
   position int
+  verbose bool
   reader *bufio.Reader
 }
 
-func NewParser(input string, position int) *Parser {
+func NewParser(input string, position int, verbose bool) *Parser {
   sr := strings.NewReader(input)
   var reader = bufio.NewReader(sr)
   return &Parser{
     input,
     position,
+    verbose,
     reader,
   }
 }
@@ -189,7 +191,10 @@ func (p *Parser) text() *DOMNode {
      node := DOMNode{
        text: val,
      }
-     fmt.Println("Consumed string: ", val)
+     if p.verbose {
+       fmt.Println("Consumed string: ", val)
+     }
+
      return &node
    }
    return nil
@@ -206,7 +211,10 @@ func (p *Parser) openTag() (string, map[string]string) {
   }
 
   var tagName = p.tagName()
-  fmt.Println("Open tag: ", tagName)
+  
+  if p.verbose {
+    fmt.Println("Open tag: ", tagName)
+  }
 
   // Exit early if we've reached the end of the tag.
   if p.accept('>') {
@@ -235,8 +243,10 @@ func (p *Parser) closeTag() string {
   }
   
   var tagName = p.tagName()
-
-  fmt.Println("Close tag: ", tagName)
+  
+  if p.verbose {
+    fmt.Println("Close tag: ", tagName)
+  }
 
   if p.accept('>') {
     return tagName
@@ -260,7 +270,9 @@ func (p *Parser) attribute() (string, string) {
 
   // We have an attribute without a value
   if !p.accept('=') {
-    log.Println("Attribute: ", "(", attributeName, ")")
+    if p.verbose {
+      log.Println("Attribute: ", "(", attributeName, ")")
+    }
     return attributeName, ""
   }
   
@@ -276,6 +288,8 @@ func (p *Parser) attribute() (string, string) {
     return "", ""
   }
 
-  log.Println("Attribute: ", "(", attributeName, "=", attributeValue, ")")
+  if p.verbose {
+    log.Println("Attribute: ", "(", attributeName, "=", attributeValue, ")")
+  }
   return attributeName, attributeValue
 }
