@@ -4,6 +4,8 @@ Why hello there.
 
 I'm mainly making this project to learn about the fundamentals of browsers are put together.
 
+Why? Because I enjoy it
+
 This project is **not** supposed to be used for anything real :)
 
 Some goals off the top of my head:
