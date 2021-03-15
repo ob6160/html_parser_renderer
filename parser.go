@@ -88,7 +88,7 @@ func (p *Parser) acceptByteGivenTest(test func(val byte) bool) (byte, bool) {
 }
 
 /**
- * Consumes all the bytes until provided test function returns true.
+ * Consumes all the bytes until provided test function returns false.
  */
 func (p *Parser) acceptBytesUntilTest(test func(val byte) bool) string {
   var sb strings.Builder
@@ -115,7 +115,7 @@ func (p *Parser) consumeWhitespace() {
 }
 
 func isAlphanumericOrPunctuation(check byte) bool {
-  return check != '>' && check != '<' || check == ' ' || check == '\r'
+  return check != '>' && check != '<' && check != '\r' && check != '\n'
 }
 
 func isAttributeSplit(check byte) bool {
@@ -167,7 +167,16 @@ func (p *Parser) node() *DOMNode {
   p.consumeWhitespace()
 
   openTag, attributes, selfClosing := p.openTag()
+
   if openTag == "" {
+    // Empty self closing open tag represents an HTML comment.
+    if selfClosing == true {
+      var c = p.comment()
+      return &DOMNode{
+        text: c,
+        selfClosing: true,
+      }
+    }
     return nil
   }
 
@@ -206,6 +215,34 @@ func (p *Parser) node() *DOMNode {
   return n
 }
 
+/**
+ * Captures anything inside these tags <!-- -->
+ */
+func (p *Parser) comment() string {
+  if !p.acceptString("<!--") {
+    return ""
+  }
+  p.accept('-')
+
+  var sb strings.Builder
+  var state = true
+  var val byte
+  for state {
+    endComment := p.acceptString("-->")
+    if endComment {
+      break
+    }
+    val, _ = p.reader.ReadByte()
+    sb.WriteByte(val)
+  }
+
+  if p.verbose {
+    fmt.Println("Comment: ", sb.String())
+  }
+
+  return sb.String()
+}
+
 func (p *Parser) text() *DOMNode {
    var val = p.acceptBytesUntilTest(isAlphanumericOrPunctuation)
    if len(val) > 0 {
@@ -225,6 +262,11 @@ func (p *Parser) openTag() (string, map[string]string, bool) {
   // if it's a close tag, bail out.
   if p.assertString("</") {
     return "", nil, false
+  }
+
+  // if it's a comment, say it's a self closing node.
+  if  p.assertString("<!--") {
+    return "", nil, true
   }
 
   if !p.accept('<') {
@@ -288,7 +330,7 @@ func (p *Parser) closeTag() string {
 
 func (p *Parser) tagName() string {
   var tagName = p.acceptBytesUntilTest(func(val byte) bool {
-    return !(val == '>' || val == ' ' || val == '/')
+    return val != '>' && val != ' ' && val != '/'
   })
 
   // Now we've determined the tag name, consume any remaining whitespace.

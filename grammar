@@ -8,4 +8,6 @@ close_tag = "</" tagname ">"
 
 attribute = attributename "=" attributevalue
 
+comment = "<!--" { text } "-->"
+
 tagname = [a-zA-Z]

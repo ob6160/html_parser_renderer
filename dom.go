@@ -33,6 +33,10 @@ func traverse (node *DOMNode, d int) {
  */
 func (d *DOMNode) printOpenTag() string {
   if d.text != "" {
+    // If it's self closing and it has text, it's a comment.
+    if d.selfClosing {
+      return fmt.Sprintf("<!--%s-->", d.text)
+    }
     return d.text
   }
   tag := d.tag
