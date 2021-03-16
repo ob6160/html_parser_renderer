@@ -125,27 +125,6 @@ func isQuote(check byte) bool {
   return check != '"' && check != '\''
 }
 
-func isSelfClosing(tag string) bool {
-  var dict = map[string]bool{
-    "area": true,
-    "base": true,
-    "br": true,
-    "col": true,
-    "embed": true,
-    "hr": true,
-    "img": true,
-    "input": true,
-    "keygen": true,
-    "link": true,
-    "meta": true,
-    "param": true,
-    "source": true,
-    "track": true,
-    "wbr": true,
-  }
-  return dict[tag]
-}
-
 /* Actual parsing starts here */
 
 func (p *Parser) Parse() *DOMNode {
@@ -154,6 +133,7 @@ func (p *Parser) Parse() *DOMNode {
 }
 
 func (p *Parser) document() *DOMNode {
+  p.consumeWhitespace()
   p.acceptString("<!DOCTYPE html>")
   var rootNode = p.node()
   return rootNode
@@ -271,7 +251,7 @@ func (p *Parser) openTag() (string, map[string]string, bool) {
   // Exit early if we've reached the end of the tag.
   // Return true if it's a self closing tag.
   if p.accept('>') {
-    selfClosing := isSelfClosing(tagName)
+    selfClosing := IsSelfClosing(tagName)
     return tagName, nil, selfClosing
   } else if p.acceptString("/>") {
     return tagName, nil, true
@@ -285,7 +265,7 @@ func (p *Parser) openTag() (string, map[string]string, bool) {
     attributes[attrName] = attrValue
     // Quit the loop when we find the end of the tag.
     if p.accept('>') {
-      selfClosing := isSelfClosing(tagName)
+      selfClosing := IsSelfClosing(tagName)
       return tagName, attributes, selfClosing
     } else if p.acceptString("/>") {
       return tagName, attributes, true
