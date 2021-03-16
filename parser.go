@@ -146,8 +146,7 @@ func (p *Parser) node() *DOMNode {
   p.consumeWhitespace()
 
   // accept html comment if it exists.
-  var c = p.comment()
-  if c != nil {
+  if c := p.comment(); c != nil {
     return c
   }
 
@@ -171,9 +170,7 @@ func (p *Parser) node() *DOMNode {
   }
 
   // recursively discover child nodes.
-  var n *DOMNode
-  n = p.node()
-  for n != nil {
+  for n := p.node(); n != nil; {
     node.children = append(node.children, n)
     n = p.node()
   }
