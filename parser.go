@@ -61,8 +61,7 @@ func (p *Parser) assertString(check string) bool {
  */
 func (p *Parser) acceptString(check string) bool {
   if p.assertString(check) {
-    var readUntil = check[len(check) - 1]
-    p.reader.ReadBytes(readUntil)
+    p.reader.Discard(len(check))
     return true
   }
   return false
@@ -166,17 +165,14 @@ func (p *Parser) document() *DOMNode {
 func (p *Parser) node() *DOMNode {
   p.consumeWhitespace()
 
+  var c = p.comment()
+  if c != nil {
+    return c
+  }
+
   openTag, attributes, selfClosing := p.openTag()
 
   if openTag == "" {
-    // Empty self closing open tag represents an HTML comment.
-    if selfClosing == true {
-      var c = p.comment()
-      return &DOMNode{
-        text: c,
-        selfClosing: true,
-      }
-    }
     return nil
   }
 
@@ -218,11 +214,10 @@ func (p *Parser) node() *DOMNode {
 /**
  * Captures anything inside these tags <!-- -->
  */
-func (p *Parser) comment() string {
+func (p *Parser) comment() *DOMNode {
   if !p.acceptString("<!--") {
-    return ""
+    return nil
   }
-  p.accept('-')
 
   var sb strings.Builder
   var state = true
@@ -240,7 +235,10 @@ func (p *Parser) comment() string {
     fmt.Println("Comment: ", sb.String())
   }
 
-  return sb.String()
+  return &DOMNode{
+    text: sb.String(),
+    selfClosing: true,
+  }
 }
 
 func (p *Parser) text() *DOMNode {
