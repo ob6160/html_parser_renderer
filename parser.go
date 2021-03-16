@@ -220,14 +220,8 @@ func (p *Parser) comment() *DOMNode {
   }
 
   var sb strings.Builder
-  var state = true
-  var val byte
-  for state {
-    endComment := p.acceptString("-->")
-    if endComment {
-      break
-    }
-    val, _ = p.reader.ReadByte()
+  for !p.acceptString("-->") {
+    val, _ := p.reader.ReadByte()
     sb.WriteByte(val)
   }
 
@@ -250,7 +244,6 @@ func (p *Parser) text() *DOMNode {
      if p.verbose {
        fmt.Println("Consumed string: ", val)
      }
-
      return &node
    }
    return nil
@@ -260,11 +253,6 @@ func (p *Parser) openTag() (string, map[string]string, bool) {
   // if it's a close tag, bail out.
   if p.assertString("</") {
     return "", nil, false
-  }
-
-  // if it's a comment, say it's a self closing node.
-  if  p.assertString("<!--") {
-    return "", nil, true
   }
 
   if !p.accept('<') {
