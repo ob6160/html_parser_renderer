@@ -154,7 +154,7 @@ func (p *Parser) node() *DOMNode {
   // accept html open tag if it exists
   openTag, attributes, selfClosing := p.openTag()
 
-  // exit early if this is not a comment or an html opening tag.
+  // if this isn't a comment or an html tag, it must be a piece of plaintext
   if openTag == "" {
     return p.text()
   }
