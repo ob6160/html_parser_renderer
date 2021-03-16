@@ -165,54 +165,48 @@ func (p *Parser) document() *DOMNode {
 func (p *Parser) node() *DOMNode {
   p.consumeWhitespace()
 
+  // accept html comment if it exists.
   var c = p.comment()
   if c != nil {
     return c
   }
 
+  // accept html open tag if it exists
   openTag, attributes, selfClosing := p.openTag()
 
+  // exit early if this is not a comment or an html opening tag.
   if openTag == "" {
-    return nil
+    return p.text()
   }
 
-  var children []*DOMNode
-  var n *DOMNode
-
-  // Self closing tags can't have children :(
-  if !selfClosing {
-    for {
-      n = p.node()
-      if n == nil {
-        n = p.text()
-        if n == nil {
-          break
-        }
-      }
-      children = append(children, n)
-    }
-  }
-
-  n = &DOMNode{
-    children: children,
+  node := &DOMNode{
     tag: openTag,
     attributes: attributes,
     selfClosing: selfClosing,
   }
 
-  // Only try and find a closing tag if not self closing.
-  if !selfClosing {
-    var closeTag = p.closeTag()
-    if closeTag == "" {
-      return n
-    }
+  // Self closing tags can't have children :(
+  if selfClosing {
+    return node
   }
 
-  return n
+  // recursively discover child nodes.
+  var n *DOMNode
+  n = p.node()
+  for n != nil {
+    node.children = append(node.children, n)
+    n = p.node()
+  }
+
+  // accept html close tag
+  // very permissive, we don't check if it exists or not.
+  p.closeTag()
+
+  return node
 }
 
 /**
- * Captures anything inside these tags <!-- -->
+ * Rulset for accepting a single html comment.
  */
 func (p *Parser) comment() *DOMNode {
   if !p.acceptString("<!--") {
@@ -235,6 +229,9 @@ func (p *Parser) comment() *DOMNode {
   }
 }
 
+/**
+ * Ruleset for accepting any text.
+ */
 func (p *Parser) text() *DOMNode {
    var val = p.acceptBytesUntilTest(isAlphanumericOrPunctuation)
    if len(val) > 0 {
@@ -249,6 +246,10 @@ func (p *Parser) text() *DOMNode {
    return nil
 }
 
+/**
+ * Ruleset for accepting an opening tag.
+ * Return values: tag name, attributes, self closing
+ */
 func (p *Parser) openTag() (string, map[string]string, bool) {
   // if it's a close tag, bail out.
   if p.assertString("</") {
@@ -296,6 +297,9 @@ func (p *Parser) openTag() (string, map[string]string, bool) {
   return "", nil, false
 }
 
+/**
+ * Ruleset for accepting a closing tag.
+ */
 func (p *Parser) closeTag() string {
   if !p.acceptString("</") {
     return ""
@@ -314,6 +318,9 @@ func (p *Parser) closeTag() string {
   return ""
 }
 
+/**
+ * Ruleset for accepting a tag name.
+ */
 func (p *Parser) tagName() string {
   var tagName = p.acceptBytesUntilTest(func(val byte) bool {
     return val != '>' && val != ' ' && val != '/'
@@ -324,6 +331,9 @@ func (p *Parser) tagName() string {
   return tagName
 }
 
+/**
+ * Ruleset for accepting a single html attribute.
+ */
 func (p *Parser) attribute() (string, string) {
   var attributeName = p.acceptBytesUntilTest(isAttributeSplit)
 
