@@ -2,6 +2,7 @@ package main
 
 import (
   "fmt"
+  "github.com/fogleman/gg"
   "strings"
 )
 
@@ -15,7 +16,7 @@ type DOMNode struct {
 
 func (d DOMNode) Equal(y DOMNode) bool {
   tags := d.tag == y.tag
-  
+
   eq := true
 
   if len(y.children) > 0 {
@@ -31,6 +32,11 @@ func (d DOMNode) Equal(y DOMNode) bool {
 }
 
 func (d *DOMNode) PrintTree() {
+  dc := gg.NewContext(1000, 1000)
+  dc.Clear()
+  dc.SetRGB(0, 0, 0)
+
+  dc.SavePNG("out.png")
   traverse(d, 0)
 }
 
