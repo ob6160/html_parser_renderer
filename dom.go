@@ -16,18 +16,29 @@ type DOMNode struct {
 
 func (d DOMNode) Equal(y DOMNode) bool {
   tags := d.tag == y.tag
-  if !tags {
+  text := d.text == y.text
+  if !tags || !text {
     return false
   }
 
+  nilOrEmpty := (
+    len(d.children) == 0  || len(y.children) == 0) &&
+    (d.children == nil || y.children == nil)
+
+  if nilOrEmpty {
+    return true
+  }
+
   eq := true
-  if len(y.children) > 0 {
+  if len(d.children) > 0 && len(y.children) > 0 {
     for i, child := range d.children {
       other := *y.children[i]
       if !child.Equal(other) {
         eq = false
       }
     }
+  } else {
+    eq = false
   }
 
   return eq
