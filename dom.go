@@ -14,6 +14,10 @@ type DOMNode struct {
   children []*DOMNode
 }
 
+/**
+ * Deep equality check for two DOM nodes.
+ * Compares tags, text and children.
+ */
 func (d DOMNode) Equal(y DOMNode) bool {
   tags := d.tag == y.tag
   text := d.text == y.text
