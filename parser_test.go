@@ -106,4 +106,59 @@ func TestParser_NoOpenTagWithText(t *testing.T) {
 	}
 }
 
+func TestParser_MultipleChildren(t *testing.T) {
+	parser := NewParser("<!DOCTYPE html><html><div>test</div><div>test</div></html>", 0, true)
+	var got = *parser.Parse()
+	want := DOMNode{
+		tag: "html",
+		children: []*DOMNode{
+			{
+				tag: "div",
+				children: []*DOMNode{
+					{text: "test"},
+				},
+			},
+			{
+				tag: "div",
+				children: []*DOMNode{
+					{text: "test"},
+				},
+			},
+		},
+	}
+
+	if !cmp.Equal(want, got) {
+		t.Errorf("got %v want %v", got, want)
+	}
+}
+
+/**
+ * Expect second div to be nested inside first.
+ */
+func TestParser_MultipleChildrenNoCloseTags(t *testing.T) {
+	parser := NewParser("<!DOCTYPE html><html><div>test<div>test</html>", 0, true)
+	var got = *parser.Parse()
+	want := DOMNode{
+		tag: "html",
+		children: []*DOMNode{
+			{
+				tag: "div",
+				children: []*DOMNode{
+					{text: "test"},
+					{
+						tag: "div",
+						children: []*DOMNode{
+							{text: "test"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if !cmp.Equal(want, got) {
+		t.Errorf("got %v want %v", got, want)
+	}
+}
+
 

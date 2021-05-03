@@ -21,8 +21,7 @@ func (d DOMNode) Equal(y DOMNode) bool {
     return false
   }
 
-  nilOrEmpty := (
-    len(d.children) == 0  || len(y.children) == 0) &&
+  nilOrEmpty := (len(d.children) == 0  || len(y.children) == 0) &&
     (d.children == nil || y.children == nil)
 
   if nilOrEmpty {
