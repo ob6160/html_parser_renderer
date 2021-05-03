@@ -16,19 +16,21 @@ type DOMNode struct {
 
 func (d DOMNode) Equal(y DOMNode) bool {
   tags := d.tag == y.tag
+  if !tags {
+    return false
+  }
 
   eq := true
-
   if len(y.children) > 0 {
     for i, child := range d.children {
       other := *y.children[i]
-      if child.Equal(other) {
+      if !child.Equal(other) {
         eq = false
       }
     }
   }
 
-  return !tags || !eq
+  return eq
 }
 
 func (d *DOMNode) PrintTree() {

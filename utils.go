@@ -1,5 +1,10 @@
 package main
 
+import (
+	"io"
+	"log"
+)
+
 func IsSelfClosing(tag string) bool {
 	var dict = map[string]bool{
 		"area": true,
@@ -19,4 +24,15 @@ func IsSelfClosing(tag string) bool {
 		"wbr": true,
 	}
 	return dict[tag]
+}
+
+func HandleIOError(err error) bool {
+	if err != nil {
+		if err == io.EOF {
+			return true
+		}
+		log.Fatal(err)
+		return true
+	}
+	return false
 }
