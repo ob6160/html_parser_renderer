@@ -161,4 +161,42 @@ func TestParser_MultipleChildrenNoCloseTags(t *testing.T) {
 	}
 }
 
+/**
+ * Deep nesting
+ */
+func TestParser_DeepNesting(t *testing.T) {
+	parser := NewParser("<!DOCTYPE html><html><div><div><div><div>deeply nested</div></div></div></div></html>", 0, true)
+	var got = *parser.Parse()
+	want := DOMNode{
+		tag: "html",
+		children: []*DOMNode{
+			{
+				tag: "div",
+				children: []*DOMNode{
+					{
+						tag: "div",
+						children: []*DOMNode{
+							{
+								tag: "div",
+								children: []*DOMNode{
+									{
+										tag: "div",
+										children: []*DOMNode{
+											{text: "deeply nested"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if !cmp.Equal(want, got) {
+		t.Errorf("got %v want %v", got, want)
+	}
+}
+
 
