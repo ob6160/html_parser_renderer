@@ -2,7 +2,6 @@ package main
 
 import (
   "fmt"
-  "github.com/fogleman/gg"
   "strings"
 )
 
@@ -17,6 +16,7 @@ type DOMNode struct {
 /**
  * Deep equality check for two DOM nodes.
  * Compares tags, text and children.
+ * TODO: Attributes too.
  */
 func (d DOMNode) Equal(y DOMNode) bool {
   tags := d.tag == y.tag
@@ -48,11 +48,6 @@ func (d DOMNode) Equal(y DOMNode) bool {
 }
 
 func (d *DOMNode) PrintTree() {
-  dc := gg.NewContext(1000, 1000)
-  dc.Clear()
-  dc.SetRGB(0, 0, 0)
-
-  dc.SavePNG("out.png")
   traverse(d, 0)
 }
 

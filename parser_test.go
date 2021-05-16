@@ -199,4 +199,42 @@ func TestParser_DeepNesting(t *testing.T) {
 	}
 }
 
+/**
+ * Self closing tags
+ */
+func TestParser_SelfClosingTags(t *testing.T) {
+	parser := NewParser("<!DOCTYPE html><html>test<br/>self<br/>closing<br/>tags</html>", 0, true)
+	var got = *parser.Parse()
+	want := DOMNode{
+		tag: "html",
+		children: []*DOMNode{
+			{
+				text: "test",
+			},
+			{
+				tag: "br",
+			},
+			{
+				text: "self",
+			},
+			{
+				tag: "br",
+			},
+			{
+				text: "closing",
+			},
+			{
+				tag: "br",
+			},
+			{
+				text: "tags",
+			},
+		},
+	}
+
+	if !cmp.Equal(want, got) {
+		t.Errorf("got %v want %v", got, want)
+	}
+}
+
 
