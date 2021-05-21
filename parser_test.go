@@ -203,7 +203,7 @@ func TestParser_DeepNesting(t *testing.T) {
  * Self closing tags
  */
 func TestParser_SelfClosingTags(t *testing.T) {
-	parser := NewParser("<!DOCTYPE html><html>test<br/>self<br/>closing<br/>tags</html>", 0, true)
+	parser := NewParser("<!DOCTYPE html><html>test<br/>self<br/>closing<hr/>tags</html>", 0, true)
 	var got = *parser.Parse()
 	want := DOMNode{
 		tag: "html",
@@ -224,7 +224,7 @@ func TestParser_SelfClosingTags(t *testing.T) {
 				text: "closing",
 			},
 			{
-				tag: "br",
+				tag: "hr",
 			},
 			{
 				text: "tags",
@@ -237,4 +237,40 @@ func TestParser_SelfClosingTags(t *testing.T) {
 	}
 }
 
+/**
+* Self closing tags
+*/
+func TestParser_Comments(t *testing.T) {
+	parser := NewParser("<!DOCTYPE html><html><!--another test comment--><b>testing comments<!--<h1>commented</h1>--></b><!-- a test comment --></html>", 0, true)
+	var got = *parser.Parse()
+	want := DOMNode{
+		tag: "html",
+		children: []*DOMNode{
+			{
+				selfClosing: true,
+				text: "another test comment",
+			},
+			{
+				tag: "b",
+				children: []*DOMNode{
+					{
+						text: "testing comments",
+					},
+					{
+						selfClosing: true,
+						text: "<h1>commented</h1>",
+					},
+				},
+			},
+			{
+				selfClosing: true,
+				text: " a test comment ",
+			},
+		},
+	}
+
+	if !cmp.Equal(want, got) {
+		t.Errorf("got %v want %v", got, want)
+	}
+}
 
