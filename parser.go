@@ -141,6 +141,7 @@ func (p *Parser) document() *DOMNode {
 
 /**
  * Parses a single node.
+ * TODO: Omit non rendered head tags from the final DOM tree.
  */
 func (p *Parser) node() *DOMNode {
   p.consumeWhitespace()
@@ -183,7 +184,8 @@ func (p *Parser) node() *DOMNode {
 }
 
 /**
- * Rulset for accepting a single html comment.
+ * Ruleset for accepting a single html comment.
+ * TODO: Think of another way to represent comments in the DOM tree without the selfClosing hack.
  */
 func (p *Parser) comment() *DOMNode {
   if !p.acceptString("<!--") {
