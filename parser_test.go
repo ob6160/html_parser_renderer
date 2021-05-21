@@ -274,3 +274,42 @@ func TestParser_Comments(t *testing.T) {
 	}
 }
 
+
+/**
+* Self closing tags
+ */
+func TestParser_Attributes(t *testing.T) {
+	parser := NewParser("<!DOCTYPE html><html><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" /></head><div class=\"test\" id='main' disabled></div></html>", 0, true)
+	var got = *parser.Parse()
+	want := DOMNode{
+		tag: "html",
+		children: []*DOMNode{
+			{
+				tag: "head",
+				children: []*DOMNode{
+					{
+						tag: "meta",
+						attributes: map[string]string{
+							"name": "viewport",
+							"content": "width=device-width,initial-scale=1",
+						},
+					},
+				},
+			},
+			{
+				tag: "div",
+				attributes: map[string]string{
+					"class": "test",
+					"id": "main",
+					"disabled": "",
+				},
+			},
+		},
+	}
+
+	if !cmp.Equal(want, got) {
+		t.Errorf("got %v want %v", got, want)
+	}
+}
+
+

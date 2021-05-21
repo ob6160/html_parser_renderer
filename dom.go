@@ -2,6 +2,7 @@ package main
 
 import (
   "fmt"
+  "reflect"
   "strings"
 )
 
@@ -15,13 +16,13 @@ type DOMNode struct {
 
 /**
  * Deep equality check for two DOM nodes.
- * Compares tags, text and children.
- * TODO: Attributes too.
+ * Compares tags, text, attributes and children.
  */
 func (d DOMNode) Equal(y DOMNode) bool {
   tags := d.tag == y.tag
   text := d.text == y.text
-  if !tags || !text {
+  attributes := reflect.DeepEqual(d.attributes, y.attributes)
+  if !tags || !text || !attributes {
     return false
   }
 
@@ -32,6 +33,7 @@ func (d DOMNode) Equal(y DOMNode) bool {
     return true
   }
 
+  // check child equivalence
   eq := true
   if len(d.children) > 0 && len(y.children) > 0 {
     for i, child := range d.children {
