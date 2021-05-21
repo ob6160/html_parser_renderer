@@ -7,6 +7,14 @@ import (
   "strings"
 )
 
+/**
+ * Takes the HTML document as an input string.
+ * Instantiates a buffered string reader.
+ * Consumes characters from reader as part of a recursive descent parser.
+ * The grammar followed is defined in grammar.txt
+ * Read more: https://en.wikipedia.org/wiki/Recursive_descent_parser
+ */
+
 type Parser struct {
   input string
   position int
