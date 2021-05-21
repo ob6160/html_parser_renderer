@@ -21,29 +21,30 @@ type DOMNode struct {
 func (d DOMNode) Equal(y DOMNode) bool {
   tags := d.tag == y.tag
   text := d.text == y.text
+  selfClosing := d.selfClosing == y.selfClosing
   attributes := reflect.DeepEqual(d.attributes, y.attributes)
-  if !tags || !text || !attributes {
+  if !tags || !text || !attributes || !selfClosing {
     return false
   }
 
-  nilOrEmpty := (len(d.children) == 0  || len(y.children) == 0) &&
+  bothNilOrEmpty := (len(d.children) == 0  || len(y.children) == 0) &&
     (d.children == nil || y.children == nil)
 
-  if nilOrEmpty {
+  if bothNilOrEmpty {
     return true
   }
 
   // check child equivalence
+  if len(d.children) != len(y.children) {
+    return false
+  }
+
   eq := true
-  if len(d.children) > 0 && len(y.children) > 0 {
-    for i, child := range d.children {
-      other := *y.children[i]
-      if !child.Equal(other) {
-        eq = false
-      }
+  for i, child := range d.children {
+    other := *y.children[i]
+    if !child.Equal(other) {
+      eq = false
     }
-  } else {
-    eq = false
   }
 
   return eq

@@ -213,18 +213,21 @@ func TestParser_SelfClosingTags(t *testing.T) {
 			},
 			{
 				tag: "br",
+				selfClosing: true,
 			},
 			{
 				text: "self",
 			},
 			{
 				tag: "br",
+				selfClosing: true,
 			},
 			{
 				text: "closing",
 			},
 			{
 				tag: "hr",
+				selfClosing: true,
 			},
 			{
 				text: "tags",
@@ -289,6 +292,7 @@ func TestParser_Attributes(t *testing.T) {
 				children: []*DOMNode{
 					{
 						tag: "meta",
+						selfClosing: true,
 						attributes: map[string]string{
 							"name": "viewport",
 							"content": "width=device-width,initial-scale=1",
