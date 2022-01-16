@@ -76,7 +76,7 @@ func TestParser_NoOpenTag(t *testing.T) {
 	parser := NewParser("<!DOCTYPE html><html></b></html>", 0, true)
 	var got = *parser.Parse()
 	want := DOMNode{
-		tag: "html",
+		tag:      "html",
 		children: []*DOMNode{},
 	}
 
@@ -212,21 +212,21 @@ func TestParser_SelfClosingTags(t *testing.T) {
 				text: "test",
 			},
 			{
-				tag: "br",
+				tag:         "br",
 				selfClosing: true,
 			},
 			{
 				text: "self",
 			},
 			{
-				tag: "br",
+				tag:         "br",
 				selfClosing: true,
 			},
 			{
 				text: "closing",
 			},
 			{
-				tag: "hr",
+				tag:         "hr",
 				selfClosing: true,
 			},
 			{
@@ -241,8 +241,8 @@ func TestParser_SelfClosingTags(t *testing.T) {
 }
 
 /**
-* Self closing tags
-*/
+* Comments
+ */
 func TestParser_Comments(t *testing.T) {
 	parser := NewParser("<!DOCTYPE html><html><!--another test comment--><b>testing comments<!--<h1>commented</h1>--></b><!-- a test comment --></html>", 0, true)
 	var got = *parser.Parse()
@@ -251,7 +251,7 @@ func TestParser_Comments(t *testing.T) {
 		children: []*DOMNode{
 			{
 				selfClosing: true,
-				text: "another test comment",
+				text:        "another test comment",
 			},
 			{
 				tag: "b",
@@ -261,13 +261,13 @@ func TestParser_Comments(t *testing.T) {
 					},
 					{
 						selfClosing: true,
-						text: "<h1>commented</h1>",
+						text:        "<h1>commented</h1>",
 					},
 				},
 			},
 			{
 				selfClosing: true,
-				text: " a test comment ",
+				text:        " a test comment ",
 			},
 		},
 	}
@@ -277,9 +277,8 @@ func TestParser_Comments(t *testing.T) {
 	}
 }
 
-
 /**
-* Self closing tags
+* Attributes
  */
 func TestParser_Attributes(t *testing.T) {
 	parser := NewParser("<!DOCTYPE html><html><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" /></head><div class=\"test\" id='main' disabled></div></html>", 0, true)
@@ -291,10 +290,10 @@ func TestParser_Attributes(t *testing.T) {
 				tag: "head",
 				children: []*DOMNode{
 					{
-						tag: "meta",
+						tag:         "meta",
 						selfClosing: true,
 						attributes: map[string]string{
-							"name": "viewport",
+							"name":    "viewport",
 							"content": "width=device-width,initial-scale=1",
 						},
 					},
@@ -303,8 +302,8 @@ func TestParser_Attributes(t *testing.T) {
 			{
 				tag: "div",
 				attributes: map[string]string{
-					"class": "test",
-					"id": "main",
+					"class":    "test",
+					"id":       "main",
 					"disabled": "",
 				},
 			},
@@ -316,4 +315,21 @@ func TestParser_Attributes(t *testing.T) {
 	}
 }
 
+func TestParser_InnerQuoteAttributes(t *testing.T) {
+	parser := NewParser("<link rel=\"preload\" as=\"style\" href=\"https://use.typekit.net/fng1clr.css\" onload=\"this.onload=null;this.rel='stylesheet'\">", 0, true)
+	var got = *parser.Parse()
+	want := DOMNode{
+		tag:         "link",
+		selfClosing: true,
+		attributes: map[string]string{
+			"rel":    "preload",
+			"as":     "style",
+			"href":   "https://use.typekit.net/fng1clr.css",
+			"onload": "this.onload=null;this.rel='stylesheet'",
+		},
+	}
 
+	if !cmp.Equal(want, got) {
+		t.Errorf("got %v want %v", got, want)
+	}
+}

@@ -16,10 +16,10 @@ import (
  */
 
 type Parser struct {
-  input string
+  input    string
   position int
-  verbose bool
-  reader *bufio.Reader
+  verbose  bool
+  reader   *bufio.Reader
 }
 
 func NewParser(input string, position int, verbose bool) *Parser {
@@ -129,8 +129,12 @@ func isAttributeSplit(check byte) bool {
   return check != '=' && check != '>' && check != ' '
 }
 
-func isQuote(check byte) bool {
-  return check != '"' && check != '\''
+func isSingleQuote(check byte) bool {
+  return check != '\''
+}
+
+func isDoubleQuote(check byte) bool {
+  return check != '"'
 }
 
 /* Actual parsing starts here */
@@ -168,8 +172,8 @@ func (p *Parser) node() *DOMNode {
   }
 
   node := &DOMNode{
-    tag: openTag,
-    attributes: attributes,
+    tag:         openTag,
+    attributes:  attributes,
     selfClosing: selfClosing,
   }
 
@@ -211,7 +215,7 @@ func (p *Parser) comment() *DOMNode {
   }
 
   return &DOMNode{
-    text: sb.String(),
+    text:        sb.String(),
     selfClosing: true,
   }
 }
@@ -220,22 +224,22 @@ func (p *Parser) comment() *DOMNode {
  * Ruleset for accepting any text.
  */
 func (p *Parser) text() *DOMNode {
-   var val = p.acceptBytesUntilTest(isAlphanumericOrPunctuation)
-   if len(val) > 0 {
-     node := DOMNode{
-       text: val,
-     }
-     if p.verbose {
-       fmt.Println("Consumed string: ", val)
-     }
-     return &node
-   }
-   return nil
+  var val = p.acceptBytesUntilTest(isAlphanumericOrPunctuation)
+  if len(val) > 0 {
+    node := DOMNode{
+      text: val,
+    }
+    if p.verbose {
+      fmt.Println("Consumed string: ", val)
+    }
+    return &node
+  }
+  return nil
 }
 
 /**
  * Ruleset for accepting an opening tag.
- * Return values: tag name, attributes, self closing
+ * Return values: tag name, attributes, self-closing
  */
 func (p *Parser) openTag() (string, map[string]string, bool) {
   // if it's a close tag, bail out.
@@ -248,7 +252,7 @@ func (p *Parser) openTag() (string, map[string]string, bool) {
   }
 
   var tagName = p.tagName()
-  
+
   if p.verbose {
     fmt.Println("Open tag: ", tagName)
   }
@@ -291,9 +295,9 @@ func (p *Parser) closeTag() string {
   if !p.acceptString("</") {
     return ""
   }
-  
+
   var tagName = p.tagName()
-  
+
   if p.verbose {
     fmt.Println("Close tag: ", tagName)
   }
@@ -331,14 +335,17 @@ func (p *Parser) attribute() (string, string) {
     }
     return attributeName, ""
   }
-  
+
   p.consumeWhitespace()
-  
-  if !p.accept('"', '\'') {
+
+  var attributeValue = ""
+  if p.accept('"') {
+    attributeValue = p.acceptBytesUntilTest(isDoubleQuote)
+  } else if p.accept('\'') {
+    attributeValue = p.acceptBytesUntilTest(isSingleQuote)
+  } else {
     return "", ""
   }
-
-  var attributeValue = p.acceptBytesUntilTest(isQuote)
 
   if !p.accept('"', '\'') {
     return "", ""
